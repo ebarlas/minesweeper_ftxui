@@ -20,3 +20,14 @@ target_link_system_libraries(
   ftxui::component)
 
 target_include_directories(intro PRIVATE "${CMAKE_BINARY_DIR}/configured_files/include")
+
+add_executable(minesweeper minesweeper.cpp)
+
+target_link_system_libraries(
+        minesweeper
+        PRIVATE
+        ftxui::screen
+        ftxui::dom
+        ftxui::component)
+
+target_include_directories(minesweeper PRIVATE "${CMAKE_BINARY_DIR}/configured_files/include")
