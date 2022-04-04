@@ -1,5 +1,6 @@
 #include <array>
 #include <random>
+#include <numeric>
 
 #include "ftxui/dom/elements.hpp"
 #include "ftxui/screen/screen.hpp"
