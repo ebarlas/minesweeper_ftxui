@@ -1,6 +1,7 @@
 #include <array>
-#include <random>
 #include <numeric>
+#include <random>
+#include <vector>
 
 #include "ftxui/dom/elements.hpp"
 #include "ftxui/screen/screen.hpp"
@@ -9,9 +10,6 @@
 #include "ftxui/component/screen_interactive.hpp"
 #include "ftxui/dom/canvas.hpp"
 #include "ftxui/screen/color.hpp"
-
-static const int ROWS = 18;
-static const int COLUMNS = 30;
 
 struct Cell
 {
@@ -35,20 +33,23 @@ class Board
     ftxui::Color::Black,
     ftxui::Color::Black };
 
-  std::array<Cell, static_cast<size_t>(ROWS *COLUMNS)> cells{};
+  const int rows;
+  const int columns;
 
   int mines;
+
+  std::vector<Cell> cells;
 
   int hover_row = -1;
   int hover_col = -1;
 
   void reset()
   {
-    for (int r = 0; r < ROWS; r++) {
-      for (int c = 0; c < COLUMNS; c++) {
-        auto &cell = at(r, c);
-        cell.row = r;
-        cell.col = c;
+    for (int row = 0; row < rows; row++) {
+      for (int col = 0; col < columns; col++) {
+        auto &cell = at(row, col);
+        cell.row = row;
+        cell.col = col;
         cell.mine = false;
         cell.flagged = false;
         cell.revealed = false;
@@ -59,25 +60,25 @@ class Board
     assign_adjacent_mines();
   }
 
-  void for_each_adjacent(int r, int c, const std::function<void(Cell &cell)> &fn)
+  void for_each_adjacent(int row, int col, const std::function<void(Cell &cell)> &fn)
   {
-    for (int ri = r - 1; ri <= r + 1; ri++) {
-      for (int ci = c - 1; ci <= c + 1; ci++) {
-        if (ri >= 0 && ri < ROWS && ci >= 0 && ci < COLUMNS) {
-          if (ci != c || ri != r) { fn(at(ri, ci)); }
+    for (int r = row - 1; r <= row + 1; r++) {
+      for (int c = col - 1; c <= col + 1; c++) {
+        if (r >= 0 && r < rows && c >= 0 && c < columns) {
+          if (c != col || r != row) { fn(at(r, c)); }
         }
       }
     }
   }
 
-  Cell &at(int row, int col) { return cells.at(row * COLUMNS + col); }
+  Cell &at(int row, int col) { return cells.at(row * columns + col); }
 
   void assign_mines()
   {
     auto now = std::chrono::system_clock::now();
     auto second_since_epoch = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count();
     std::mt19937 mt{ static_cast<unsigned int>(second_since_epoch) };
-    std::uniform_int_distribution dist{ 0, ROWS * COLUMNS - 1 };// random values over closed (inclusive) range
+    std::uniform_int_distribution dist{ 0, rows * columns - 1 };// random values over closed (inclusive) range
     int remaining = mines;
     while (remaining > 0) {
       auto next = dist(mt);
@@ -154,12 +155,16 @@ class Board
   }
 
 public:
-  explicit Board(int mines) : mines(mines) { reset(); }
+  explicit Board(int rows, int columns, int mines)// NOLINT adjacent params
+    : rows(rows), columns(columns), mines(mines), cells(static_cast<std::vector<Cell>::size_type>(rows) * columns)
+  {
+    reset();
+  }
 
   [[nodiscard]] ftxui::Canvas render()
   {
     using namespace ftxui;
-    auto cvs = Canvas(COLUMNS * 2, ROWS * 4);
+    auto cvs = Canvas(columns * 2, rows * 4);
     for (auto &cell : cells) { render(cvs, cell.row, cell.col); }
     return cvs;
   }
@@ -205,6 +210,10 @@ public:
   }
 
   [[nodiscard]] int get_mines() const { return mines; }
+
+  [[nodiscard]] int get_rows() const { return rows; }
+
+  [[nodiscard]] int get_columns() const { return columns; }
 
   bool is_alive()
   {
@@ -267,7 +276,7 @@ class Game
     board.on_hover(row, col);
 
     if (state != GameState::ended) {
-      if (row >= 0 && row < ROWS && col >= 0 && col < COLUMNS) {
+      if (row >= 0 && row < board.get_rows() && col >= 0 && col < board.get_columns()) {
         if (e.mouse().motion == Mouse::Released) {
           if (e.mouse().button == Mouse::Button::Left) {
             if (state == GameState::init) {
@@ -306,8 +315,8 @@ class Game
   }
 
 public:
-  Game(int time_limit, int mines_increment, int mines_init)// NOLINT adjacent int params
-    : time_limit(time_limit), mines_init(mines_init), mines_increment(mines_increment), board(mines_init)
+  Game(int rows, int columns, int time_limit, int mines_increment, int mines_init)// NOLINT adjacent int params
+    : time_limit(time_limit), mines_init(mines_init), mines_increment(mines_increment), board(rows, columns, mines_init)
   {}
 
   void run()
@@ -356,7 +365,7 @@ public:
 
 int main()
 {
-  Game game{ 180, 5, 10 };// NOLINT constant seed parameters for game
+  Game game{ 18, 30, 180, 5, 10 };// NOLINT constant seed parameters for game
   game.run();
   return 0;
 }
