@@ -73,6 +73,8 @@ class Board
 
   Cell &at(int row, int col) { return cells.at(row * columns + col); }
 
+  [[nodiscard]] const Cell &at(int row, int col) const { return cells.at(row * columns + col); }
+
   void assign_mines()
   {
     auto now = std::chrono::system_clock::now();
@@ -131,10 +133,10 @@ class Board
     });
   }
 
-  void render(ftxui::Canvas &canvas, int row, int col)
+  void render(ftxui::Canvas &canvas, int row, int col) const
   {
     using namespace ftxui;
-    auto &cell = at(row, col);
+    const auto &cell = at(row, col);
     auto is_sel = row == hover_row && col == hover_col;
     if (!cell.revealed && !cell.flagged) {
       draw(canvas, row, col, " ", Color::GrayLight, is_sel ? Color::GrayDark : Color::GrayLight);
@@ -161,11 +163,11 @@ public:
     reset();
   }
 
-  [[nodiscard]] ftxui::Canvas render()
+  [[nodiscard]] ftxui::Canvas render() const
   {
     using namespace ftxui;
     auto cvs = Canvas(columns * 2, rows * 4);
-    for (auto &cell : cells) { render(cvs, cell.row, cell.col); }
+    for (const auto &cell : cells) { render(cvs, cell.row, cell.col); }
     return cvs;
   }
 
@@ -215,13 +217,13 @@ public:
 
   [[nodiscard]] int get_columns() const { return columns; }
 
-  bool is_alive()
+  [[nodiscard]] bool is_alive() const
   {
     auto fn = [](bool alive, const Cell &c) { return alive && !(c.revealed && c.mine); };
     return std::accumulate(cells.cbegin(), cells.cend(), true, fn);
   }
 
-  bool is_complete()
+  [[nodiscard]] bool is_complete() const
   {
     auto fn = [](int sum, const Cell &c) { return c.revealed ? sum + 1 : sum; };
     auto revealed = std::accumulate(cells.cbegin(), cells.cend(), 0, fn);
