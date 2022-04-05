@@ -74,10 +74,10 @@ class Board
 
   void assign_mines()
   {
-    auto now = std::chrono::steady_clock::now();
+    auto now = std::chrono::system_clock::now();
     auto second_since_epoch = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count();
     std::mt19937 mt{ static_cast<unsigned int>(second_since_epoch) };
-    std::uniform_int_distribution dist{ 0, ROWS * COLUMNS - 1 };
+    std::uniform_int_distribution dist{ 0, ROWS * COLUMNS - 1 };// random values over closed (inclusive) range
     int remaining = mines;
     while (remaining > 0) {
       auto next = dist(mt);
