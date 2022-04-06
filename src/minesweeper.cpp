@@ -1,373 +1,57 @@
-#include <array>
-#include <numeric>
-#include <random>
-#include <vector>
-
-#include "ftxui/dom/elements.hpp"
-#include "ftxui/screen/screen.hpp"
-
 #include "ftxui/component/component.hpp"
-#include "ftxui/component/screen_interactive.hpp"
-#include "ftxui/dom/canvas.hpp"
-#include "ftxui/screen/color.hpp"
-
-struct Cell
-{
-  int row;
-  int col;
-  bool mine;
-  bool flagged;
-  bool revealed;
-  int adjacentMines;
-};
-
-class Board
-{
-  const std::array<ftxui::Color, 9> COLORS{ ftxui::Color::Black,
-    ftxui::Color::Blue,
-    ftxui::Color::Green,
-    ftxui::Color::Red,
-    ftxui::Color::DarkBlue,
-    ftxui::Color::DarkRed,
-    ftxui::Color::SeaGreen1,
-    ftxui::Color::Black,
-    ftxui::Color::Black };
-
-  const int rows;
-  const int columns;
-
-  int mines;
-
-  std::vector<Cell> cells;
-
-  int hover_row = -1;
-  int hover_col = -1;
-
-  void reset()
-  {
-    for (int row = 0; row < rows; row++) {
-      for (int col = 0; col < columns; col++) {
-        auto &cell = at(row, col);
-        cell.row = row;
-        cell.col = col;
-        cell.mine = false;
-        cell.flagged = false;
-        cell.revealed = false;
-        cell.adjacentMines = 0;
-      }
-    }
-    assign_mines();
-    assign_adjacent_mines();
-  }
-
-  void for_each_adjacent(int row, int col, const std::function<void(Cell &cell)> &fn)
-  {
-    for (int r = row - 1; r <= row + 1; r++) {
-      for (int c = col - 1; c <= col + 1; c++) {
-        if (r >= 0 && r < rows && c >= 0 && c < columns) {
-          if (c != col || r != row) { fn(at(r, c)); }
-        }
-      }
-    }
-  }
-
-  Cell &at(int row, int col) { return cells.at(row * columns + col); }
-
-  [[nodiscard]] const Cell &at(int row, int col) const { return cells.at(row * columns + col); }
-
-  void assign_mines()
-  {
-    auto now = std::chrono::system_clock::now();
-    auto second_since_epoch = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count();
-    std::mt19937 mt{ static_cast<unsigned int>(second_since_epoch) };
-    std::uniform_int_distribution dist{ 0, rows * columns - 1 };// random values over closed (inclusive) range
-    int remaining = mines;
-    while (remaining > 0) {
-      auto next = dist(mt);
-      auto &cell = cells.at(next);
-      if (!cell.mine) {
-        cell.mine = true;
-        remaining--;
-      }
-    }
-  }
-
-  void assign_adjacent_mines()
-  {
-    for (auto &target : cells) {
-      for_each_adjacent(target.row, target.col, [&target](const Cell &adj) {
-        if (adj.mine) { target.adjacentMines++; }
-      });
-    }
-  }
-
-  int count_adjacent_flags(int row, int col)
-  {
-    int count = 0;
-    for_each_adjacent(row, col, [&count](const Cell &cell) {
-      if (cell.flagged) { count++; }
-    });
-    return count;
-  }
-
-  void reveal_neighbors(int row, int col)
-  {
-    for_each_adjacent(row, col, [this](const Cell &cell) {
-      if (!cell.flagged && !cell.revealed) { reveal(cell.row, cell.col); }
-    });
-  }
-
-  void reveal(int row, int col)
-  {
-    auto &cell = at(row, col);
-    cell.revealed = true;
-    if (!cell.mine && cell.adjacentMines == 0) { reveal_neighbors(row, col); }
-  }
-
-  static void draw(ftxui::Canvas &canvas, int row, int col, const std::string &value, ftxui::Color fg, ftxui::Color bg)
-  {
-    canvas.DrawText(col * 2, row * 4, value, [fg, bg](ftxui::Pixel &p) {
-      p.foreground_color = fg;
-      p.background_color = bg;
-      p.bold = true;
-    });
-  }
-
-  void render(ftxui::Canvas &canvas, int row, int col) const
-  {
-    using namespace ftxui;
-    const auto &cell = at(row, col);
-    auto is_sel = row == hover_row && col == hover_col;
-    if (!cell.revealed && !cell.flagged) {
-      draw(canvas, row, col, " ", Color::GrayLight, is_sel ? Color::GrayDark : Color::GrayLight);
-    } else if (!cell.revealed && cell.flagged) {
-      draw(canvas, row, col, "*", Color::Red, is_sel ? Color::GrayDark : Color::GrayLight);
-    } else if (cell.mine) {
-      draw(canvas, row, col, " ", Color::Red, is_sel ? Color::GrayDark : Color::Red);
-    } else if (cell.adjacentMines == 0) {
-      draw(canvas, row, col, " ", Color::White, is_sel ? Color::GrayDark : Color::White);
-    } else {
-      draw(canvas,
-        row,
-        col,
-        std::to_string(cell.adjacentMines),
-        COLORS.at(cell.adjacentMines),
-        is_sel ? Color::GrayDark : Color::White);
-    }
-  }
-
-public:
-  explicit Board(int rows, int columns, int mines)// NOLINT adjacent params
-    : rows(rows), columns(columns), mines(mines), cells(static_cast<std::vector<Cell>::size_type>(rows) * columns)
-  {
-    reset();
-  }
-
-  [[nodiscard]] ftxui::Canvas render() const
-  {
-    using namespace ftxui;
-    auto cvs = Canvas(columns * 2, rows * 4);
-    for (const auto &cell : cells) { render(cvs, cell.row, cell.col); }
-    return cvs;
-  }
-
-  void on_left_click(int row, int col)
-  {
-    if (is_alive()) {
-      const auto &cell = at(row, col);
-      if (cell.revealed && cell.adjacentMines == count_adjacent_flags(row, col)) {
-        reveal_neighbors(row, col);
-      } else if (!cell.flagged) {
-        reveal(row, col);
-      }
-    }
-  }
-
-  void on_right_click(int row, int col)
-  {
-    if (is_alive()) {
-      auto &cell = at(row, col);
-      if (!cell.revealed) { cell.flagged = !cell.flagged; }
-    }
-  }
-
-  void on_hover(int row, int col)// NOLINT adjacent int params
-  {
-    hover_row = row;
-    hover_col = col;
-  }
-
-  void restore()
-  {
-    for (auto &cell : cells) {
-      cell.flagged = false;
-      cell.revealed = false;
-    }
-  }
-
-  void update(int mines_update)
-  {
-    mines = mines_update;
-    reset();
-  }
-
-  [[nodiscard]] int get_mines() const { return mines; }
-
-  [[nodiscard]] int get_rows() const { return rows; }
-
-  [[nodiscard]] int get_columns() const { return columns; }
-
-  [[nodiscard]] bool is_alive() const
-  {
-    auto fn = [](bool alive, const Cell &c) { return alive && !(c.revealed && c.mine); };
-    return std::accumulate(cells.cbegin(), cells.cend(), true, fn);
-  }
-
-  [[nodiscard]] bool is_complete() const
-  {
-    auto fn = [](int sum, const Cell &c) { return c.revealed ? sum + 1 : sum; };
-    auto revealed = std::accumulate(cells.cbegin(), cells.cend(), 0, fn);
-    return revealed == cells.size() - mines;
-  }
-};
-
-enum class GameState { init, playing, ended };
-
-class Game
-{
-  const int time_limit;
-  const int mines_init;
-  const int mines_increment;
-
-  Board board;
-
-  GameState state = GameState::init;
-  int round = 1;
-  std::chrono::time_point<std::chrono::steady_clock, std::chrono::milliseconds> start_time{};
-
-  [[nodiscard]] std::string round_text() const { return std::to_string(round); }
-
-  static auto time_now()
-  {
-    return std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now());
-  }
-
-  [[nodiscard]] auto elapsed_time() const
-  {
-    auto now = time_now();
-    auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - start_time);
-    return elapsed.count();
-  }
-
-  [[nodiscard]] std::string time_text() const
-  {
-    if (state == GameState::init) { return std::to_string(time_limit); }
-    if (state == GameState::ended) { return "0"; }
-    return std::to_string(time_limit - elapsed_time());
-  }
-
-  [[nodiscard]] std::string mines_text() const { return std::to_string(board.get_mines()); }
-
-  void on_mouse_event(ftxui::Event e)
-  {
-    using namespace ftxui;
-
-    int col = e.mouse().x - 1;
-    int row = e.mouse().y - 1;
-
-    board.on_hover(row, col);
-
-    if (state != GameState::ended) {
-      if (row >= 0 && row < board.get_rows() && col >= 0 && col < board.get_columns()) {
-        if (e.mouse().motion == Mouse::Released) {
-          if (e.mouse().button == Mouse::Button::Left) {
-            if (state == GameState::init) {
-              state = GameState::playing;
-              start_time = time_now();
-            }
-            board.on_left_click(row, col);
-          } else if (e.mouse().button == Mouse::Button::Right) {
-            board.on_right_click(row, col);
-          }
-        }
-      }
-    }
-
-    if (board.is_complete()) {
-      board.update(board.get_mines() + mines_increment);
-      round++;
-    }
-  }
-
-  void on_refresh_event()
-  {
-    if (state == GameState::playing && elapsed_time() >= time_limit) { state = GameState::ended; }
-  }
-
-  void on_new_game()
-  {
-    state = GameState::init;
-    round = 1;
-    board.update(mines_init);
-  }
-
-  void on_reset_game()
-  {
-    if (state == GameState::playing) { board.restore(); }
-  }
-
-public:
-  Game(int rows, int columns, int time_limit, int mines_increment, int mines_init)// NOLINT adjacent int params
-    : time_limit(time_limit), mines_init(mines_init), mines_increment(mines_increment), board(rows, columns, mines_init)
-  {}
-
-  void run()
-  {
-    using namespace ftxui;
-
-    auto board_renderer = Renderer([&] { return canvas(board.render()); });
-    auto board_with_mouse = CatchEvent(board_renderer, [&](const Event &e) {
-      if (e.is_mouse()) { on_mouse_event(e); }
-      return false;
-    });
-
-    auto new_game_button = Button("New Game", [&] { on_new_game(); });
-    auto reset_button = Button("Reset", [&] { on_reset_game(); });
-
-    auto buttons = Container::Vertical({ new_game_button, reset_button });
-    auto components = CatchEvent(Container::Horizontal({ board_with_mouse, buttons }), [&](const Event &) {
-      on_refresh_event();
-      return false;
-    });
-
-    auto game_renderer = Renderer(components, [&] {
-      return hbox({ board_with_mouse->Render(),
-               separator(),
-               vbox({ window(text("Round"), text(round_text())),
-                 window(text("Time"), text(time_text())),
-                 window(text("Mines"), text(mines_text())),
-                 buttons->Render() }) })
-             | border;
-    });
-
-    auto screen = ScreenInteractive::FitComponent();
-    std::atomic<bool> refresh_ui_continue = true;
-    std::thread refresh_ui([&] {
-      while (refresh_ui_continue) {
-        using namespace std::chrono_literals;
-        std::this_thread::sleep_for(1.0s / 10.0);// NOLINT magic numbers
-        screen.PostEvent(Event::Custom);
-      }
-    });
-    screen.Loop(game_renderer);
-    refresh_ui_continue = false;
-    refresh_ui.join();
-  }
-};
+#include "ftxui/dom/elements.hpp"
+#include "game.h"
 
 int main()
 {
-  Game game{ 18, 30, 180, 5, 10 };// NOLINT constant seed parameters for game
-  game.run();
+  minesweeper::Game game{ 18, 30, 5, 15, 5, 10 };// NOLINT constant seed parameters for game
+
+  using namespace ftxui;
+
+  auto board_renderer = Renderer([&] { return canvas(game.render_board()); });
+  auto board_with_mouse = CatchEvent(board_renderer, [&](Event e) {
+    if (e.is_mouse()) {
+      auto &mouse = e.mouse();
+      auto row = mouse.y - 3;// subtract top title bar height
+      auto col = mouse.x - 1;// subtract left border width
+      game.on_mouse_event(row, col, mouse.button, mouse.motion);
+    }
+    return false;
+  });
+
+  auto new_game_button = Button("New Game", [&] { game.on_new_game(); });
+  auto reset_button = Button("Reset", [&] { game.on_reset_game(); });
+
+  auto buttons = Container::Vertical({ new_game_button, reset_button });
+  auto components = CatchEvent(Container::Horizontal({ board_with_mouse, buttons }), [&](const Event &) {
+    game.on_refresh_event();
+    return false;
+  });
+
+  auto game_renderer = Renderer(components, [&] {
+    return vbox({ center(text("Minesweeper Marathon")) | flex,
+             separator(),
+             hbox({ board_with_mouse->Render(),
+               separator(),
+               vbox({ window(text("Round"), text(std::to_string(game.get_round()))),
+                 window(text("Time"), text(std::to_string(game.get_time()))),
+                 window(text("Mines"), text(std::to_string(game.get_mines()))),
+                 buttons->Render() }) }) })
+           | border;
+  });
+
+  auto screen = ScreenInteractive::FitComponent();
+  std::atomic<bool> refresh_ui_continue = true;
+  std::thread refresh_ui([&] {
+    while (refresh_ui_continue) {
+      using namespace std::chrono_literals;
+      std::this_thread::sleep_for(1.0s / 10.0);// NOLINT magic numbers
+      screen.PostEvent(Event::Custom);
+    }
+  });
+  screen.Loop(game_renderer);
+  refresh_ui_continue = false;
+  refresh_ui.join();
+
   return 0;
 }

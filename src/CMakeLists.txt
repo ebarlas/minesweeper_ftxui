@@ -21,7 +21,7 @@ target_link_system_libraries(
 
 target_include_directories(intro PRIVATE "${CMAKE_BINARY_DIR}/configured_files/include")
 
-add_executable(minesweeper minesweeper.cpp)
+add_executable(minesweeper board.cpp game.cpp minesweeper.cpp)
 
 target_link_system_libraries(
         minesweeper
