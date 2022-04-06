@@ -1,5 +1,6 @@
 #include <random>
 #include <chrono>
+#include <numeric>
 
 #include "board.h"
 
