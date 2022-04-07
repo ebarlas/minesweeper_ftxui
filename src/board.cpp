@@ -1,6 +1,6 @@
-#include <random>
 #include <chrono>
 #include <numeric>
+#include <random>
 
 #include "board.h"
 
@@ -33,9 +33,12 @@ void Board::for_each_adjacent(int row, int col, const std::function<void(Cell &c
   }
 }
 
-Cell &Board::at(int row, int col) { return cells.at(row * columns + col); }
+Cell &Board::at(int row, int col) { return cells.at(static_cast<unsigned int>(row * columns + col)); }
 
-[[nodiscard]] const Cell &Board::at(int row, int col) const { return cells.at(row * columns + col); }
+[[nodiscard]] const Cell &Board::at(int row, int col) const
+{
+  return cells.at(static_cast<unsigned int>(row * columns + col));
+}
 
 void Board::assign_mines()
 {
@@ -46,7 +49,7 @@ void Board::assign_mines()
   int remaining = mines;
   while (remaining > 0) {
     auto next = dist(mt);
-    auto &cell = cells.at(next);
+    auto &cell = cells.at(static_cast<unsigned int>(next));
     if (!cell.mine) {
       cell.mine = true;
       remaining--;
@@ -113,13 +116,13 @@ void Board::render(ftxui::Canvas &canvas, int row, int col) const
       row,
       col,
       std::to_string(cell.adjacentMines),
-      COLORS.at(cell.adjacentMines),
+      COLORS.at(static_cast<unsigned int>(cell.adjacentMines)),
       is_sel ? Color::GrayDark : Color::White);
   }
 }
 
 Board::Board(int rows, int columns, int mines)// NOLINT adjacent int parameters
-  : rows(rows), columns(columns), mines(mines), cells(static_cast<std::vector<Cell>::size_type>(rows) * columns)
+  : rows(rows), columns(columns), mines(mines), cells(static_cast<std::vector<Cell>::size_type>(rows * columns))
 {
   reset();
 }
@@ -188,6 +191,6 @@ bool Board::is_complete() const
 {
   auto fn = [](int sum, const Cell &c) { return c.revealed ? sum + 1 : sum; };
   auto revealed = std::accumulate(cells.cbegin(), cells.cend(), 0, fn);
-  return revealed == cells.size() - mines;
+  return revealed == static_cast<int>(cells.size()) - mines;
 }
 }// namespace minesweeper
