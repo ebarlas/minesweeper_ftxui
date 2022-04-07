@@ -89,35 +89,24 @@ void Board::reveal(int row, int col)
   if (!cell.mine && cell.adjacentMines == 0) { reveal_neighbors(row, col); }
 }
 
-void Board::draw(ftxui::Canvas &canvas, int row, int col, const std::string &value, ftxui::Color fg, ftxui::Color bg)
+void Board::render(Bitmap &bitmap, int row, int col) const
 {
-  canvas.DrawText(col * 2, row * 4, value, [fg, bg](ftxui::Pixel &p) {
-    p.foreground_color = fg;
-    p.background_color = bg;
-    p.bold = true;
-  });
-}
-
-void Board::render(ftxui::Canvas &canvas, int row, int col) const
-{
-  using namespace ftxui;
   const auto &cell = at(row, col);
   auto is_sel = row == hover_row && col == hover_col;
   if (!cell.revealed && !cell.flagged) {
-    draw(canvas, row, col, " ", Color::GrayLight, is_sel ? Color::GrayDark : Color::GrayLight);
+    bitmap.set(row, col, Color::light_gray, is_sel ? Color::dark_gray : Color::light_gray, ' ');
   } else if (!cell.revealed && cell.flagged) {
-    draw(canvas, row, col, "*", Color::Red, is_sel ? Color::GrayDark : Color::GrayLight);
+    bitmap.set(row, col, Color::red, is_sel ? Color::dark_gray : Color::light_gray, '*');
   } else if (cell.mine) {
-    draw(canvas, row, col, " ", Color::Red, is_sel ? Color::GrayDark : Color::Red);
+    bitmap.set(row, col, Color::red, is_sel ? Color::dark_gray : Color::red, ' ');
   } else if (cell.adjacentMines == 0) {
-    draw(canvas, row, col, " ", Color::White, is_sel ? Color::GrayDark : Color::White);
+    bitmap.set(row, col, Color::white, is_sel ? Color::dark_gray : Color::white, ' ');
   } else {
-    draw(canvas,
-      row,
+    bitmap.set(row,
       col,
-      std::to_string(cell.adjacentMines),
       COLORS.at(static_cast<unsigned int>(cell.adjacentMines)),
-      is_sel ? Color::GrayDark : Color::White);
+      is_sel ? Color::dark_gray : Color::white,
+      static_cast<char>(cell.adjacentMines + '0'));
   }
 }
 
@@ -127,12 +116,11 @@ Board::Board(int rows_, int columns_, int mines_)// NOLINT adjacent int paramete
   reset();
 }
 
-ftxui::Canvas Board::render() const
+Bitmap Board::render() const
 {
-  using namespace ftxui;
-  auto cvs = Canvas(columns * 2, rows * 4);
-  for (const auto &cell : cells) { render(cvs, cell.row, cell.col); }
-  return cvs;
+  auto bitmap = Bitmap(rows, columns);
+  for (const auto &cell : cells) { render(bitmap, cell.row, cell.col); }
+  return bitmap;
 }
 
 void Board::on_left_click(int row, int col)

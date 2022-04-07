@@ -7,15 +7,9 @@ add_library(catch_main OBJECT catch_main.cpp)
 target_link_libraries(catch_main PUBLIC Catch2::Catch2)
 target_link_libraries(catch_main PRIVATE project_options)
 
-add_executable(board_tests board_tests.cpp ../src/board.cpp)
+add_executable(board_tests board_tests.cpp ../src/bitmap.cpp ../src/board.cpp)
 target_include_directories(board_tests PRIVATE ../src)
 target_link_libraries(board_tests PRIVATE project_warnings project_options catch_main)
-target_link_system_libraries(
-        board_tests
-        PRIVATE
-        ftxui::screen
-        ftxui::dom
-        ftxui::component)
 
 target_include_directories(board_tests PRIVATE "${CMAKE_BINARY_DIR}/configured_files/include")
 
@@ -34,15 +28,9 @@ catch_discover_tests(
         OUTPUT_SUFFIX
         .xml)
 
-add_executable(game_tests game_tests.cpp ../src/board.cpp ../src/game.cpp)
+add_executable(game_tests game_tests.cpp ../src/bitmap.cpp ../src/board.cpp ../src/game.cpp)
 target_include_directories(game_tests PRIVATE ../src)
 target_link_libraries(game_tests PRIVATE project_warnings project_options catch_main)
-target_link_system_libraries(
-        game_tests
-        PRIVATE
-        ftxui::screen
-        ftxui::dom
-        ftxui::component)
 
 target_include_directories(game_tests PRIVATE "${CMAKE_BINARY_DIR}/configured_files/include")
 

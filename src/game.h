@@ -3,8 +3,6 @@
 
 #include "board.h"
 
-#include "ftxui/component/screen_interactive.hpp"
-
 namespace minesweeper {
 
 class Game
@@ -27,16 +25,16 @@ class Game
   [[nodiscard]] std::chrono::seconds elapsed_time() const;
 
 public:
-  Game(int rows_,int cols_,int time_init_,int time_inc_,int mines_init_,int mines_inc_);// NOLINT adjacent int params
+  Game(int rows_, int cols_, int time_init_, int time_inc_, int mines_init_, int mines_inc_);// NOLINT adj int params
   [[nodiscard]] int get_round() const;
   [[nodiscard]] int get_time() const;
   [[nodiscard]] int get_mines() const;
-  void on_mouse_event(int row, int col, ftxui::Mouse::Button button, ftxui::Mouse::Motion motion);
+  void on_mouse_event(int row, int col, bool left_click, bool right_click, bool mouse_up);
   void on_key_up();
   void on_refresh_event();
   void on_new_game();
   void on_reset_game();
-  [[nodiscard]] ftxui::Canvas render_board() const;
+  [[nodiscard]] Bitmap render_board() const;
 };
 }// namespace minesweeper
 

@@ -29,22 +29,20 @@ int Game::get_time() const
 
 int Game::get_mines() const { return board.get_mines(); }
 
-void Game::on_mouse_event(int row, int col, ftxui::Mouse::Button button, ftxui::Mouse::Motion motion)
+void Game::on_mouse_event(int row, int col, bool left_click, bool right_click, bool mouse_up)
 {
-  using namespace ftxui;
-
   board.on_hover(row, col);
 
   if (state != GameState::ended) {
     if (row >= 0 && row < board.get_rows() && col >= 0 && col < board.get_columns()) {
-      if (motion == Mouse::Released) {
-        if (button == Mouse::Button::Left) {
+      if (mouse_up) {
+        if (left_click) {
           if (state == GameState::init) {
             state = GameState::playing;
             start_time = time_now();
           }
           board.on_left_click(row, col);
-        } else if (button == Mouse::Button::Right) {
+        } else if (right_click) {
           board.on_right_click(row, col);
         }
       }
@@ -81,7 +79,7 @@ void Game::on_reset_game()
   if (state == GameState::playing) { board.restore(); }
 }
 
-ftxui::Canvas Game::render_board() const { return board.render(); }
+Bitmap Game::render_board() const { return board.render(); }
 void Game::on_key_up()
 {
   if (state != GameState::ended) { board.on_key_up(); }

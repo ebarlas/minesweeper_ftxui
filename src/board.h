@@ -1,11 +1,9 @@
 #ifndef MINESWEEPER_BOARD
 #define MINESWEEPER_BOARD
 
+#include "bitmap.h"
 #include <array>
 #include <vector>
-
-#include "ftxui/dom/canvas.hpp"
-#include "ftxui/screen/color.hpp"
 
 namespace minesweeper {
 struct Cell
@@ -20,15 +18,15 @@ struct Cell
 
 class Board
 {
-  const std::array<ftxui::Color, 9> COLORS{ ftxui::Color::Black,
-    ftxui::Color::Blue,
-    ftxui::Color::Green,
-    ftxui::Color::Red,
-    ftxui::Color::DarkBlue,
-    ftxui::Color::DarkRed,
-    ftxui::Color::SeaGreen1,
-    ftxui::Color::Black,
-    ftxui::Color::Black };
+  const std::array<Color, 9> COLORS{ Color::black,
+    Color::blue,
+    Color::green,
+    Color::red,
+    Color::dark_blue,
+    Color::dark_red,
+    Color::sea_green,
+    Color::black,
+    Color::black };
 
   const int rows;
   const int columns;
@@ -49,12 +47,11 @@ class Board
   int count_adjacent_flags(int row, int col);
   void reveal_neighbors(int row, int col);
   void reveal(int row, int col);
-  static void draw(ftxui::Canvas &canvas, int row, int col, const std::string &value, ftxui::Color fg, ftxui::Color bg);
-  void render(ftxui::Canvas &canvas, int row, int col) const;
+  void render(Bitmap &bitmap, int row, int col) const;
 
 public:
   explicit Board(int rows_, int columns_, int mines_);
-  [[nodiscard]] ftxui::Canvas render() const;
+  [[nodiscard]] Bitmap render() const;
   void on_left_click(int row, int col);
   void on_right_click(int row, int col);
   void on_key_up();

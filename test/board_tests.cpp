@@ -3,21 +3,21 @@
 
 void check_default_render(const minesweeper::Board &board)
 {
-  auto canvas = board.render();
+  auto bitmap = board.render();
   for (int r = 0; r < 2; r++) {
     for (int c = 0; c < 2; c++) {
-      auto pixel = canvas.GetPixel(c, r);
-      REQUIRE(pixel.foreground_color == ftxui::Color::GrayLight);
-      REQUIRE(pixel.background_color == ftxui::Color::GrayLight);
+      auto pixel = bitmap.get(r, c);
+      REQUIRE(pixel.foreground == minesweeper::Color::light_gray);
+      REQUIRE(pixel.background == minesweeper::Color::light_gray);
     }
   }
 }
 
-void verify_one(const ftxui::Pixel &pixel)
+void verify_one(const minesweeper::Pixel &pixel)
 {
-  REQUIRE(pixel.character == "1");
-  REQUIRE(pixel.foreground_color == ftxui::Color::Blue);
-  REQUIRE(pixel.background_color == ftxui::Color::White);
+  REQUIRE(pixel.value == '1');
+  REQUIRE(pixel.foreground == minesweeper::Color::blue);
+  REQUIRE(pixel.background == minesweeper::Color::white);
 }
 
 std::pair<int, int> find_mine(minesweeper::Board &board)
@@ -29,7 +29,7 @@ std::pair<int, int> find_mine(minesweeper::Board &board)
       if (!board.is_alive()) { return { r, c }; }
     }
   }
-  return {-1, -1};
+  return { -1, -1 };
 }
 
 TEST_CASE("Initial board state", "[board]")
@@ -48,16 +48,14 @@ TEST_CASE("Hover over cell", "[board]")
   minesweeper::Board board{ 2, 2, 1 };
 
   board.on_hover(0, 0);
-  auto canvas = board.render();
-  auto pixel = canvas.GetPixel(0, 0);
-  REQUIRE(pixel.foreground_color == ftxui::Color::GrayLight);
-  REQUIRE(pixel.background_color == ftxui::Color::GrayDark);
+  auto pixel = board.render().get(0, 0);
+  REQUIRE(pixel.foreground == minesweeper::Color::light_gray);
+  REQUIRE(pixel.background == minesweeper::Color::dark_gray);
 
   board.on_hover(-1, -1);
-  canvas = board.render();
-  pixel = canvas.GetPixel(0, 0);
-  REQUIRE(pixel.foreground_color == ftxui::Color::GrayLight);
-  REQUIRE(pixel.background_color == ftxui::Color::GrayLight);
+  pixel = board.render().get(0, 0);
+  REQUIRE(pixel.foreground == minesweeper::Color::light_gray);
+  REQUIRE(pixel.background == minesweeper::Color::light_gray);
 }
 
 TEST_CASE("Complete board", "[board]")
@@ -65,22 +63,19 @@ TEST_CASE("Complete board", "[board]")
   minesweeper::Board board{ 2, 2, 0 };
   board.on_left_click(0, 0);
   REQUIRE(board.is_complete());
-
-  auto canvas = board.render();
-  auto pixel = canvas.GetPixel(0, 0);
-  REQUIRE(pixel.foreground_color == ftxui::Color::White);
-  REQUIRE(pixel.background_color == ftxui::Color::White);
+  auto pixel = board.render().get(0, 0);
+  REQUIRE(pixel.foreground == minesweeper::Color::white);
+  REQUIRE(pixel.background == minesweeper::Color::white);
 }
 
 TEST_CASE("Flag cell", "[board]")
 {
   minesweeper::Board board{ 2, 2, 1 };
   board.on_right_click(0, 0);
-  auto canvas = board.render();
-  auto pixel = canvas.GetPixel(0, 0);
-  REQUIRE(pixel.character == "*");
-  REQUIRE(pixel.foreground_color == ftxui::Color::Red);
-  REQUIRE(pixel.background_color == ftxui::Color::GrayLight);
+  auto pixel = board.render().get(0, 0);
+  REQUIRE(pixel.value == '*');
+  REQUIRE(pixel.foreground == minesweeper::Color::red);
+  REQUIRE(pixel.background == minesweeper::Color::light_gray);
 }
 
 TEST_CASE("Keystroke flag cell", "[board]")
@@ -88,11 +83,10 @@ TEST_CASE("Keystroke flag cell", "[board]")
   minesweeper::Board board{ 2, 2, 1 };
   board.on_hover(0, 0);
   board.on_key_up();
-  auto canvas = board.render();
-  auto pixel = canvas.GetPixel(0, 0);
-  REQUIRE(pixel.character == "*");
-  REQUIRE(pixel.foreground_color == ftxui::Color::Red);
-  REQUIRE(pixel.background_color == ftxui::Color::GrayDark);
+  auto pixel = board.render().get(0, 0);
+  REQUIRE(pixel.value == '*');
+  REQUIRE(pixel.foreground == minesweeper::Color::red);
+  REQUIRE(pixel.background == minesweeper::Color::dark_gray);
 }
 
 TEST_CASE("Reveal mine", "[board]")
@@ -102,10 +96,9 @@ TEST_CASE("Reveal mine", "[board]")
   REQUIRE_FALSE(board.is_complete());
   REQUIRE_FALSE(board.is_alive());
 
-  auto canvas = board.render();
-  auto pixel = canvas.GetPixel(0, 0);
-  REQUIRE(pixel.foreground_color == ftxui::Color::Red);
-  REQUIRE(pixel.background_color == ftxui::Color::Red);
+  auto pixel = board.render().get(0, 0);
+  REQUIRE(pixel.foreground == minesweeper::Color::red);
+  REQUIRE(pixel.background == minesweeper::Color::red);
 }
 
 TEST_CASE("Board update", "[board]")
@@ -134,7 +127,7 @@ TEST_CASE("Reveal neighbors left click", "[board]")
   auto click_row = (mine_row + 1) % 2;
   auto click_col = mine_col;
   board.on_left_click(click_row, click_col);
-  verify_one(board.render().GetPixel(click_col, click_row));
+  verify_one(board.render().get(click_row, click_col));
   board.on_left_click(click_row, click_col);
   REQUIRE(board.is_alive());
   REQUIRE(board.is_complete());
@@ -149,7 +142,7 @@ TEST_CASE("Reveal neighbors right click", "[board]")
   auto click_row = (mine_row + 1) % 2;
   auto click_col = mine_col;
   board.on_left_click(click_row, click_col);
-  verify_one(board.render().GetPixel(click_col, click_row));
+  verify_one(board.render().get(click_row, click_col));
   board.on_right_click(click_row, click_col);
   REQUIRE(board.is_alive());
   REQUIRE(board.is_complete());
