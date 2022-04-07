@@ -2,6 +2,7 @@
 #define MINESWEEPER_GAME
 
 #include "board.h"
+#include <chrono>
 
 namespace minesweeper {
 

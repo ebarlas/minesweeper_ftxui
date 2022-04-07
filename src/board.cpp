@@ -22,7 +22,7 @@ void Board::reset()
   assign_adjacent_mines();
 }
 
-void Board::for_each_adjacent(int row, int col, const std::function<void(Cell &cell)> &fn)
+void Board::for_each_adjacent(int row, int col, const std::function<void(Cell &cell)> &fn)// NOLINT adj int parameters
 {
   for (int r = row - 1; r <= row + 1; r++) {
     for (int c = col - 1; c <= col + 1; c++) {
@@ -66,7 +66,7 @@ void Board::assign_adjacent_mines()
   }
 }
 
-int Board::count_adjacent_flags(int row, int col)
+int Board::count_adjacent_flags(int row, int col)// NOLINT adjacent int parameters
 {
   int count = 0;
   for_each_adjacent(row, col, [&count](const Cell &cell) {
@@ -75,21 +75,21 @@ int Board::count_adjacent_flags(int row, int col)
   return count;
 }
 
-void Board::reveal_neighbors(int row, int col)
+void Board::reveal_neighbors(int row, int col)// NOLINT adjacent int parameters
 {
   for_each_adjacent(row, col, [this](const Cell &cell) {
     if (!cell.flagged && !cell.revealed) { reveal(cell.row, cell.col); }
   });
 }
 
-void Board::reveal(int row, int col)
+void Board::reveal(int row, int col)// NOLINT adjacent int parameters
 {
   auto &cell = at(row, col);
   cell.revealed = true;
   if (!cell.mine && cell.adjacentMines == 0) { reveal_neighbors(row, col); }
 }
 
-void Board::render(Bitmap &bitmap, int row, int col) const
+void Board::render(Bitmap &bitmap, int row, int col) const// NOLINT adjacent int parameters
 {
   const auto &cell = at(row, col);
   auto is_sel = row == hover_row && col == hover_col;

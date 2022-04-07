@@ -4,6 +4,7 @@
 #include "bitmap.h"
 #include <array>
 #include <vector>
+#include <functional>
 
 namespace minesweeper {
 struct Cell
