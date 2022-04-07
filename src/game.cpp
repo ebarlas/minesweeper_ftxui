@@ -67,7 +67,7 @@ void Game::on_refresh_event()
 {
   if (state == GameState::playing && elapsed_time().count() >= time) {
     state = GameState::ended;
-#if defined(__EMSCRIPTEN__)//use stderr channel to communicate score to JavaScript
+#if defined(__EMSCRIPTEN__)// use stderr channel to communicate score to JavaScript
     std::cerr << std::to_string(round) << std::endl;
 #endif
   }
@@ -87,4 +87,5 @@ void Game::on_reset_game()
 }
 
 ftxui::Canvas Game::render_board() const { return board.render(); }
+void Game::on_key_up() { board.on_key_up(); }
 }// namespace minesweeper

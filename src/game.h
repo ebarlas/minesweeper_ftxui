@@ -37,6 +37,7 @@ public:
   [[nodiscard]] int get_time() const;
   [[nodiscard]] int get_mines() const;
   void on_mouse_event(int row, int col, ftxui::Mouse::Button button, ftxui::Mouse::Motion motion);
+  void on_key_up();
   void on_refresh_event();
   void on_new_game();
   void on_reset_game();

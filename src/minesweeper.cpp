@@ -23,7 +23,8 @@ int main()
   auto reset_button = Button("Reset", [&] { game.on_reset_game(); });
 
   auto buttons = Container::Vertical({ new_game_button, reset_button });
-  auto components = CatchEvent(Container::Horizontal({ board_with_mouse, buttons }), [&](const Event &) {
+  auto components = CatchEvent(Container::Horizontal({ board_with_mouse, buttons }), [&](const Event &e) {
+    if (e.is_character()) { game.on_key_up(); }
     game.on_refresh_event();
     return false;
   });

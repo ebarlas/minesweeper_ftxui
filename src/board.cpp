@@ -151,7 +151,11 @@ void Board::on_right_click(int row, int col)
 {
   if (is_alive()) {
     auto &cell = at(row, col);
-    if (!cell.revealed) { cell.flagged = !cell.flagged; }
+    if (cell.revealed && cell.adjacentMines == count_adjacent_flags(row, col)) {
+      reveal_neighbors(row, col);
+    } else if (!cell.revealed) {
+      cell.flagged = !cell.flagged;
+    }
   }
 }
 
@@ -193,4 +197,5 @@ bool Board::is_complete() const
   auto revealed = std::accumulate(cells.cbegin(), cells.cend(), 0, fn);
   return revealed == static_cast<int>(cells.size()) - mines;
 }
+void Board::on_key_up() { on_right_click(hover_row, hover_col); }
 }// namespace minesweeper

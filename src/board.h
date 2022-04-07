@@ -57,6 +57,7 @@ public:
   [[nodiscard]] ftxui::Canvas render() const;
   void on_left_click(int row, int col);
   void on_right_click(int row, int col);
+  void on_key_up();
   void on_hover(int row, int col);
   void restore();
   void update(int mines_update);
