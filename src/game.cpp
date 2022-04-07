@@ -87,5 +87,8 @@ void Game::on_reset_game()
 }
 
 ftxui::Canvas Game::render_board() const { return board.render(); }
-void Game::on_key_up() { board.on_key_up(); }
+void Game::on_key_up()
+{
+  if (state != GameState::ended) { board.on_key_up(); }
+}
 }// namespace minesweeper
