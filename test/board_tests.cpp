@@ -83,6 +83,18 @@ TEST_CASE("Flag cell", "[board]")
   REQUIRE(pixel.background_color == ftxui::Color::GrayLight);
 }
 
+TEST_CASE("Keystroke flag cell", "[board]")
+{
+  minesweeper::Board board{ 2, 2, 1 };
+  board.on_hover(0, 0);
+  board.on_key_up();
+  auto canvas = board.render();
+  auto pixel = canvas.GetPixel(0, 0);
+  REQUIRE(pixel.character == "*");
+  REQUIRE(pixel.foreground_color == ftxui::Color::Red);
+  REQUIRE(pixel.background_color == ftxui::Color::GrayDark);
+}
+
 TEST_CASE("Reveal mine", "[board]")
 {
   minesweeper::Board board{ 2, 2, 4 };
@@ -113,7 +125,7 @@ TEST_CASE("Restore board", "[board]")
   REQUIRE(board.is_alive());
 }
 
-TEST_CASE("Reveal neighbors", "[board]")
+TEST_CASE("Reveal neighbors left click", "[board]")
 {
   minesweeper::Board board{ 2, 2, 1 };
   const auto [mine_row, mine_col] = find_mine(board);
@@ -124,6 +136,21 @@ TEST_CASE("Reveal neighbors", "[board]")
   board.on_left_click(click_row, click_col);
   verify_one(board.render().GetPixel(click_col, click_row));
   board.on_left_click(click_row, click_col);
+  REQUIRE(board.is_alive());
+  REQUIRE(board.is_complete());
+}
+
+TEST_CASE("Reveal neighbors right click", "[board]")
+{
+  minesweeper::Board board{ 2, 2, 1 };
+  const auto [mine_row, mine_col] = find_mine(board);
+  board.restore();
+  board.on_right_click(mine_row, mine_col);
+  auto click_row = (mine_row + 1) % 2;
+  auto click_col = mine_col;
+  board.on_left_click(click_row, click_col);
+  verify_one(board.render().GetPixel(click_col, click_row));
+  board.on_right_click(click_row, click_col);
   REQUIRE(board.is_alive());
   REQUIRE(board.is_complete());
 }

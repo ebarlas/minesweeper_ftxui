@@ -56,7 +56,7 @@ void Game::on_mouse_event(int row, int col, ftxui::Mouse::Button button, ftxui::
     }
   }
 
-  if (board.is_complete()) {
+  if (state == GameState::playing && board.is_complete()) {
     board.update(std::min(board.get_rows() * board.get_columns(), board.get_mines() + mines_increment));
     round++;
     time += time_increment;

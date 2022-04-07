@@ -63,4 +63,21 @@ TEST_CASE("Flag mine", "[game]")
 {
   minesweeper::Game game{ 2, 2, 5, 0, 0, 4 };// NOLINT magic numbers
   game.on_mouse_event(0, 0, ftxui::Mouse::Button::Right, ftxui::Mouse::Motion::Released);
+  auto canvas = game.render_board();
+  auto pixel = canvas.GetPixel(0, 0);
+  REQUIRE(pixel.character == "*");
+  REQUIRE(pixel.foreground_color == ftxui::Color::Red);
+  REQUIRE(pixel.background_color == ftxui::Color::GrayDark);
+}
+
+TEST_CASE("Flag mine with keystroke", "[game]")
+{
+  minesweeper::Game game{ 2, 2, 5, 0, 0, 4 };// NOLINT magic numbers
+  game.on_mouse_event(0, 0, ftxui::Mouse::Button::None, ftxui::Mouse::Motion::Released);
+  game.on_key_up();
+  auto canvas = game.render_board();
+  auto pixel = canvas.GetPixel(0, 0);
+  REQUIRE(pixel.character == "*");
+  REQUIRE(pixel.foreground_color == ftxui::Color::Red);
+  REQUIRE(pixel.background_color == ftxui::Color::GrayDark);
 }
