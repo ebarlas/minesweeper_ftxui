@@ -4,7 +4,7 @@
 
 int main()
 {
-  minesweeper::Game game{ 18, 30, 30, 20, 1, 10 };// NOLINT constant seed parameters for game
+  minesweeper::Game game{ 18, 30, 30, 20, 10, 1 };// NOLINT constant seed parameters for game
 
   using namespace ftxui;
 

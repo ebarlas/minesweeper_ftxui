@@ -121,8 +121,8 @@ void Board::render(ftxui::Canvas &canvas, int row, int col) const
   }
 }
 
-Board::Board(int rows, int columns, int mines)// NOLINT adjacent int parameters
-  : rows(rows), columns(columns), mines(mines), cells(static_cast<std::vector<Cell>::size_type>(rows * columns))
+Board::Board(int rows_, int columns_, int mines_)// NOLINT adjacent int parameters
+  : rows(rows_), columns(columns_), mines(mines_), cells(static_cast<std::vector<Cell>::size_type>(rows * columns))
 {
   reset();
 }

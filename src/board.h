@@ -53,7 +53,7 @@ class Board
   void render(ftxui::Canvas &canvas, int row, int col) const;
 
 public:
-  explicit Board(int rows, int columns, int mines);
+  explicit Board(int rows_, int columns_, int mines_);
   [[nodiscard]] ftxui::Canvas render() const;
   void on_left_click(int row, int col);
   void on_right_click(int row, int col);

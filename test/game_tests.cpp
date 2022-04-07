@@ -14,7 +14,7 @@ void check_default_render(const ftxui::Canvas &canvas)
 
 TEST_CASE("Initial game state", "[game]")
 {
-  minesweeper::Game game{ 2, 2, 5, 5, 5, 0 };// NOLINT magic numbers
+  minesweeper::Game game{ 2, 2, 5, 5, 0, 5 };// NOLINT magic numbers
   REQUIRE(game.get_mines() == 0);
   REQUIRE(game.get_time() == 5);
   REQUIRE(game.get_round() == 1);
@@ -36,7 +36,7 @@ TEST_CASE("Time expired", "[game]")
   // click to start timer and advance to round 2
   game.on_mouse_event(0, 0, ftxui::Mouse::Button::Left, ftxui::Mouse::Motion::Released);
   REQUIRE(game.get_round() == 2);
-  REQUIRE(game.get_time() == 0); // game is not actually over yet, since game-over is processed in refresh
+  REQUIRE(game.get_time() == 0);// game is not actually over yet, since game-over is processed in refresh
 
   // refresh event ends game
   game.on_refresh_event();
@@ -52,7 +52,7 @@ TEST_CASE("Time expired", "[game]")
 
 TEST_CASE("Reset round", "[game]")
 {
-  minesweeper::Game game{ 2, 2, 5, 0, 0, 4 };// NOLINT magic numbers
+  minesweeper::Game game{ 2, 2, 5, 0, 4, 0 };// NOLINT magic numbers
   game.on_mouse_event(0, 0, ftxui::Mouse::Button::Left, ftxui::Mouse::Motion::Released);
   REQUIRE(game.get_round() == 1);
 
@@ -61,7 +61,7 @@ TEST_CASE("Reset round", "[game]")
 
 TEST_CASE("Flag mine", "[game]")
 {
-  minesweeper::Game game{ 2, 2, 5, 0, 0, 4 };// NOLINT magic numbers
+  minesweeper::Game game{ 2, 2, 5, 0, 4, 0 };// NOLINT magic numbers
   game.on_mouse_event(0, 0, ftxui::Mouse::Button::Right, ftxui::Mouse::Motion::Released);
   auto canvas = game.render_board();
   auto pixel = canvas.GetPixel(0, 0);
@@ -72,7 +72,7 @@ TEST_CASE("Flag mine", "[game]")
 
 TEST_CASE("Flag mine with keystroke", "[game]")
 {
-  minesweeper::Game game{ 2, 2, 5, 0, 0, 4 };// NOLINT magic numbers
+  minesweeper::Game game{ 2, 2, 5, 0, 4, 0 };// NOLINT magic numbers
   game.on_mouse_event(0, 0, ftxui::Mouse::Button::None, ftxui::Mouse::Motion::Released);
   game.on_key_up();
   auto canvas = game.render_board();
