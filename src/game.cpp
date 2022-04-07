@@ -13,14 +13,9 @@ std::chrono::seconds Game::elapsed_time() const
   return std::chrono::duration_cast<std::chrono::seconds>(now - start_time);
 }
 
-Game::Game(int rows_,
-  int columns_,// NOLINT adjacent int parameters
-  int time_init_,// NOLINT adjacent int parameters
-  int time_increment_,// NOLINT adjacent int parameters
-  int mines_init_,// NOLINT adjacent int parameters
-  int mines_increment_)// NOLINT adjacent int parameters
-  : time_init(time_init_), time_increment(time_increment_), mines_init(mines_init_), mines_increment(mines_increment_),
-    board(rows_, columns_, mines_init_), time(time_init)
+Game::Game(int rows_, int cols_, int time_init_, int time_inc_, int mines_init_, int mines_inc_)// NOLINT adj int params
+  : time_init(time_init_), time_increment(time_inc_), mines_init(mines_init_), mines_increment(mines_inc_),
+    board(rows_, cols_, mines_init_), time(time_init)
 {}
 
 int Game::get_round() const { return round; }

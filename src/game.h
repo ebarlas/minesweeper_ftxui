@@ -27,12 +27,7 @@ class Game
   [[nodiscard]] std::chrono::seconds elapsed_time() const;
 
 public:
-  Game(int rows_,
-    int columns_,
-    int time_init_,
-    int time_increment_,
-    int mines_init_,
-    int mines_increment_);// NOLINT adjacent int params
+  Game(int rows_,int cols_,int time_init_,int time_inc_,int mines_init_,int mines_inc_);// NOLINT adjacent int params
   [[nodiscard]] int get_round() const;
   [[nodiscard]] int get_time() const;
   [[nodiscard]] int get_mines() const;
