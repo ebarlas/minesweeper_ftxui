@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Minesweeper</title>
+    <script src="https://cdn.jsdelivr.net/npm/xterm@4.18.0/lib/xterm.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-webgl@0.11.4/lib/xterm-addon-webgl.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@4.11.0/css/xterm.css"></link>
+</head>
+<body>
+<script id="minesweeper"></script>
+<div class="page">
+    Goal: Achieve the highest round in the time allotted
+    <p/>
+    Rules: See Microsoft Minesweeper <a href="https://en.wikipedia.org/wiki/Microsoft_Minesweeper">Wikipedia page</a>
+    <p/>
+    Controls:
+    <ul>
+        <li>Left click covered tile to reveal</li>
+        <li>Click revealed number to clear neighbors</li>
+        <li>Right click covered tile to flag</li>
+        <li>Alternatively, key press while hovering over covered tile to flag</li>
+    </ul>
+    <p/>
+    Gameplay:
+    <ul>
+        <li>A time bonus of 20s is added when a round is completed successfully</li>
+        <li>The number of mines increases by one in each round</li>
+        <li>Click reset to restart the current round with same board configuration</li>
+        <li>Click new game to start a new game</li>
+        <li>High score is sent to server with entered name when time expires</li>
+    </ul>
+    High score entry (3 letters A-Z):
+    <input type="text" id="first" name="first" required minlength="1" maxlength="1" size="1">
+    <input type="text" id="second" name="second" required minlength="1" maxlength="1" size="1">
+    <input type="text" id="third" name="third" required minlength="1" maxlength="1" size="1">
+    <p/>
+    Enter name before playing if you'd like your score on the board!
+    <p/>
+    <a href="highscores.html">High score board</a>
+    <div id="terminal"></div>
+</div>
+</body>
+<script>
+    window.addEventListener('contextmenu', e => e.preventDefault(), false);
+    let stdin_buffer = [];
+    let stdin = () => {
+        return stdin_buffer.shift() || 0;
+    }
+    stdout_buffer = [];
+    let stdout = code => {
+        if (code == 0) {
+            term.write(new Uint8Array(stdout_buffer));
+            stdout_buffer = [];
+        } else {
+            stdout_buffer.push(code)
+        }
+    }
+    stderr_buffer = [];
+    const stderr = code => {
+        if (code == 10) {
+            const round = parseInt(String.fromCharCode.apply(null, stderr_buffer));
+            stderr_buffer = [];
+            const name = document.getElementById('first').value.toUpperCase()
+                + document.getElementById('second').value.toUpperCase()
+                + document.getElementById('third').value.toUpperCase();
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", "/minesweeper/scores", true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.send(JSON.stringify({
+                "name": name,
+                "score": round,
+                "time": Math.floor(Date.now() / 1000)
+            }));
+        } else {
+            stderr_buffer.push(code);
+        }
+    }
+    const term = new Terminal();
+    term.open(document.querySelector('#terminal'));
+    term.resize(140, 43);
+    term.loadAddon(new (WebglAddon.WebglAddon)());
+    const onBinary = e => {
+        for (c of e)
+            stdin_buffer.push(c.charCodeAt(0));
+    }
+    term.onBinary(onBinary);
+    term.onData(onBinary)
+    window.Module = {
+        preRun: () => {
+            FS.init(stdin, stdout, stderr);
+        },
+        postRun: [],
+        onRuntimeInitialized: () => {
+        },
+    };
+    document.querySelector("#minesweeper").src = 'minesweeper.js';
+</script>
+<style>
+    .page {
+        max-width: 1300px;
+        margin: auto;
+    }
+
+    #terminal {
+        padding: 10px;
+        border: none;
+        background-color: black;
+    }
+</style>
+</html>

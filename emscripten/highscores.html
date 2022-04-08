@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Minesweeper Scores</title>
+    <style>
+        table {
+            border-collapse: collapse;
+        }
+
+        tr {
+            border-bottom: 1px solid #ccc;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 8px;
+            font-family: "Helvetica Neue", "Lucida Grande", Arial, sans-serif;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+<table id="scores">
+    <thead>
+    <tr>
+        <th>Rank</th>
+        <th>Name</th>
+        <th>Round</th>
+        <th>Date (UTC)</th>
+    </tr>
+    </thead>
+    <tbody id="rows">
+    </tbody>
+    <tfoot>
+</table>
+<script>
+    function addCell(row, text) {
+        const cell = row.insertCell();
+        cell.appendChild(document.createTextNode(text));
+    }
+
+    function addScores(scores) {
+        const tbody = document.getElementById('rows');
+        let rank;
+        let lastScore = -1;
+        scores.forEach((score, index) => {
+            if (score['score'] !== lastScore) {
+                rank = index + 1;
+            }
+            const row = tbody.insertRow();
+            addCell(row, rank);
+            addCell(row, score['name']);
+            addCell(row, score['score']);
+            addCell(row, score['date'].replace('T', ' '));
+            lastScore = score['score'];
+        });
+    }
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "/minesweeper/scores", true);
+    xhr.onload = function (e) {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            addScores(JSON.parse(xhr.responseText));
+        }
+    };
+    xhr.send(null);
+</script>
+</body>
+</html>
