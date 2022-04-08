@@ -37,7 +37,7 @@ ftxui::Canvas bitmap_to_canvas(const minesweeper::Bitmap &bitmap)
 
 int main()
 {
-  minesweeper::Game game{ 18, 30, 30, 20, 10, 2 };// NOLINT constant seed parameters for game
+  minesweeper::Game game{ 18, 30, 30, 20, 10, 1 };// NOLINT constant seed parameters for game
 
   using namespace ftxui;
 
