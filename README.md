@@ -11,6 +11,8 @@ with a timer and rounds of increasing difficulty.
 This repository was initially generated from the [C++ Best Practices GitHub template](https://github.com/cpp-best-practices/ftxui_template) 
 for participation in the [April 2022 C++ Best Practices Game Jam](https://github.com/cpp-best-practices/game_jam/tree/main/Jam1_April_2022).
 
+Play in the browser at https://barlasgarden.com/minesweeper/index.html
+
 # Resources
 
 ### Source Code
@@ -41,7 +43,9 @@ ctest -C Debug
 
 The [Emscripten](https://emscripten.org/) toolchain emits WebAssembly suitable for inclusion in web pages.
 
-Fortunately, [FTXUI](https://github.com/ArthurSonzogni/FTXUI/) supports Emscripten and even includes a range of examples compiled as Wasm. 
+Fortunately, [FTXUI](https://github.com/ArthurSonzogni/FTXUI/) supports Emscripten and even includes a range of examples compiled as Wasm.
+
+An online version is available at https://barlasgarden.com/minesweeper/index.html
 
 #### Files
 
