@@ -15,6 +15,28 @@ Play in the browser at https://barlasgarden.com/minesweeper/index.html
 
 ![Screenshot](screenshot.png)
 
+# Gameplay
+
+#### Goal
+Achieve the highest round in the time allotted.
+
+#### Rules
+The original [Minesweeper](https://en.wikipedia.org/wiki/Microsoft_Minesweeper) gameplay 
+within a grid of tiles remains unchanged. Reveal all non-mine tiles as quickly
+as possible. 
+
+However, when a single board is completed, the game continues with a 20-second time bonus and
+another board that has an additional mine. This process continues until time expires.
+
+Additionally, an individual board can be reset to restart the current round. Progress is
+not lost if a mine is revealed!
+
+#### Controls:
+
+* Left click covered tile to reveal
+* Click (left or right) revealed number with correct number of flagged neighbors to clear remaining neighbors
+* Right click or key press while hovering covered tile to flag
+
 # Resources
 
 ### Source Code
