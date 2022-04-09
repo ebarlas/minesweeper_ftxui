@@ -13,6 +13,8 @@ for participation in the [April 2022 C++ Best Practices Game Jam](https://github
 
 Play in the browser at https://barlasgarden.com/minesweeper/index.html
 
+![Screenshot](screenshot.png)
+
 # Resources
 
 ### Source Code
