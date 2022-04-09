@@ -6,6 +6,7 @@
 
 namespace minesweeper {
 
+// Game models the overall game state, including the board, timer, and button interactions.
 class Game
 {
   enum class GameState { init, playing, ended };
@@ -26,7 +27,7 @@ class Game
   [[nodiscard]] std::chrono::seconds elapsed_time() const;
 
 public:
-  Game(int rows_, int cols_, int time_init_, int time_inc_, int mines_init_, int mines_inc_);// NOLINT adj int params
+  Game(int rows_, int cols_, int time_init_, int time_inc_, int mines_init_, int mines_inc_);
   [[nodiscard]] int get_round() const;
   [[nodiscard]] int get_time() const;
   [[nodiscard]] int get_mines() const;

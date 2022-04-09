@@ -7,6 +7,8 @@
 #include <functional>
 
 namespace minesweeper {
+
+// Cell is the data model for a minesweeper board tile. It can represent all tile data states.
 struct Cell
 {
   int row;
@@ -17,6 +19,7 @@ struct Cell
   int adjacentMines;
 };
 
+// Board is a two-dimensional grid of cells. It can be rendered as a bitmap.
 class Board
 {
   const std::array<Color, 9> COLORS{ Color::black,

@@ -94,19 +94,17 @@ void Board::render(Bitmap &bitmap, int row, int col) const// NOLINT adjacent int
   const auto &cell = at(row, col);
   auto is_sel = row == hover_row && col == hover_col;
   if (!cell.revealed && !cell.flagged) {
-    bitmap.set(row, col, Color::light_gray, is_sel ? Color::dark_gray : Color::light_gray, ' ');
+    bitmap.set(row, col, { Color::light_gray, is_sel ? Color::dark_gray : Color::light_gray, ' ' });
   } else if (!cell.revealed && cell.flagged) {
-    bitmap.set(row, col, Color::red, is_sel ? Color::dark_gray : Color::light_gray, '*');
+    bitmap.set(row, col, { Color::red, is_sel ? Color::dark_gray : Color::light_gray, '*' });
   } else if (cell.mine) {
-    bitmap.set(row, col, Color::red, is_sel ? Color::dark_gray : Color::red, ' ');
+    bitmap.set(row, col, { Color::red, is_sel ? Color::dark_gray : Color::red, ' ' });
   } else if (cell.adjacentMines == 0) {
-    bitmap.set(row, col, Color::white, is_sel ? Color::dark_gray : Color::white, ' ');
+    bitmap.set(row, col, { Color::white, is_sel ? Color::dark_gray : Color::white, ' ' });
   } else {
-    bitmap.set(row,
-      col,
-      COLORS.at(static_cast<unsigned int>(cell.adjacentMines)),
-      is_sel ? Color::dark_gray : Color::white,
-      static_cast<char>(cell.adjacentMines + '0'));
+    auto color = COLORS.at(static_cast<unsigned int>(cell.adjacentMines));
+    auto value = static_cast<char>(cell.adjacentMines + '0');// ASCII arithmetic!
+    bitmap.set(row, col, { color, is_sel ? Color::dark_gray : Color::white, value });
   }
 }
 
